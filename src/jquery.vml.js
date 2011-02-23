@@ -1,5 +1,5 @@
 /*!
- * jQuery vml Plugin v0.0.4
+ * jQuery vml Plugin v0.0.4.scaling
  * https://github.com/minodisk/jquery.vml.js
  *
  * Copyright (c) 2011 Daisuke MINO
@@ -83,12 +83,9 @@
 
 	function _replaceImageNodeWithVML($element) {
 		$element.css('visibility', 'hidden');
-		var $shape = _generateVML($element, $element.attr('src'), $element.width(), $element.height());
+		var $shape = _generateVML(true, $element, $element.attr('src'), $element.width(), $element.height());
 		$element.before($shape);
 		$shape.attr('fillcolor', 'none'); // Set 'fillcolor' after adding the shape to document, or it doesn't work.
-
-		$element[0].isVML = true;
-		$element[0].isImageNode = true;
 	}
 
 	function _replaceBackgroundImageStyleWithVML($element) {
@@ -108,6 +105,7 @@
 		$element.wrapInner($inner);
 
 		var $shape = _generateVML(
+			false,
 			$element, src,
 			$element.width() + parseInt($element.css('paddingLeft')) + parseInt($element.css('paddingRight')),
 			$element.height() + parseInt($element.css('paddingTop')) + parseInt($element.css('paddingBottom')),
@@ -134,9 +132,6 @@
 			.bind('mousedown', _onMouseDown)
 			.bind('mouseup', _onMouseUpOrBlur)
 			.bind('blur', _onMouseUpOrBlur);
-
-		$element[0].isVML = true;
-		$element[0].isImageNode = false;
 	}
 
 	function _onMouseEnterOrLeave(e) {
@@ -160,15 +155,15 @@
 	function _reflectFillPosition($element) {
 		// Wait for reflecting style.
 		setTimeout(function () {
-			var width = $element.width() + parseInt($element.css('paddingLeft')) + parseInt($element.css('paddingRight')) + 1;
-			var height = $element.height() + parseInt($element.css('paddingTop')) + parseInt($element.css('paddingBottom')) + 1;
-			var x = _getPosition($element.width(), $element.css('backgroundPositionX')) + 1;
-			var y = _getPosition($element.height(), $element.css('backgroundPositionY')) + 1;
-			$($element[0].fill).attr('position', (x / width).toString() + ',' + (y / height).toString());
+			var width = $element.width() + parseInt($element.css('paddingLeft')) + parseInt($element.css('paddingRight'));
+			var height = $element.height() + parseInt($element.css('paddingTop')) + parseInt($element.css('paddingBottom'));
+			var x = _getPosition($element.width(), $element.css('backgroundPositionX'));
+			var y = _getPosition($element.height(), $element.css('backgroundPositionY'));
+			$($element[0].fill).attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString());
 		}, 0);
 	}
 
-	function _generateVML($element, src, width, height, x, y) {
+	function _generateVML(isImageNode, $element, src, width, height, x, y) {
 		if (!x) {
 			x = 0;
 		}
@@ -176,10 +171,10 @@
 			y = 0;
 		}
 
-		width++;
-		height++;
-		x++;
-		y++;
+		//width++;
+		//height++;
+		//x++;
+		//y++;
 
 		var opacity = $element.css('opacity');
 
@@ -187,16 +182,16 @@
 			.width(width)
 			.height(height)
 			.css({
-			         position: 'absolute',
-			         clip: 'rect(1.01px ' + width.toString() + 'px ' + height.toString() + 'px 1.01px)'
+			         position: 'absolute'/*,
+			         clip: 'rect(1.01px ' + width.toString() + 'px ' + height.toString() + 'px 1.01px)'/**/
 			     })
 			.attr('coordorigin', '1,1')
-			.attr('coordsize', width.toString() + ',' + height.toString())
+			.attr('coordsize', (width * 2).toString() + ',' + (height * 2).toString())
 			.attr('path',
-			'm 0,0 l ' +
-				width.toString() + ',0, ' +
-				width.toString() + ',' + height.toString() + ', ' +
-				'0,' + height.toString() +
+				'm 0,0 l ' +
+				(width * 2).toString() + ',0, ' +
+				(width * 2).toString() + ',' + (height * 2).toString() + ', ' +
+				'0,' + (height * 2).toString() +
 				' x e'
 			)
 			.attr('stroked', 'false')
@@ -204,8 +199,8 @@
 
 		var $fill = $('<' + _NAMESPACE + ':fill />')
 			.attr('src', src)
-			.attr('type', 'tile')
-			.attr('position', (x / width).toString() + ',' + (y / height).toString())
+			.attr('type', isImageNode ? 'frame' : 'tile')
+			.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
 			.appendTo($shape);
 
 		if (src.search('.png') != -1) {
@@ -220,6 +215,8 @@
 
 		$element[0].shape = $shape[0];
 		$element[0].fill = $fill[0];
+		$element[0].isVML = true;
+		$element[0].isImageNode = isImageNode;
 
 		return $shape;
 	}
@@ -249,7 +246,8 @@
 	}
 
 	var ralpha = /alpha\([^)]*\)/i,
-		ropacity = /opacity=([^)]*)/;
+		ropacity = /opacity=([^)]*)/,
+		rnumpx = /^-?\d+(?:px)?$/i;
 
 	function _getOpacityAsFilter(elem, computed) {
 		// IE uses filters for opacity
@@ -351,7 +349,42 @@
 		$.fx.step.top = function (fx) {
 			$.cssHooks.top.set(fx.elem, fx.now + fx.unit);
 		};
+
+		// Override width
+		/*$.cssHooks.top = {
+			get: function (elem, computed) {
+				if (elem.isVML && elem.isImageNode) {
+					return elem.shape.style.top;
+				}
+				return elem.style.top;
+			},
+			set: function (elem, value) {
+				if (elem.isVML && elem.isImageNode) {
+					elem.shape.style.top = value;
+				}
+				elem.style.top = value;
+			}
+		};*/
 	}
+
+		var cssHooksWidth = $.cssHooks.width;
+		$.cssHooks.width = {
+			get: function( elem, computed, extra ) {
+				
+
+				return cssHooksWidth.get( elem, computed, extra );
+			},
+
+			set: function( elem, value ) {
+				
+
+				return cssHooksWidth.set( elem , value );
+			}
+		};
+	
+		$.fx.step.width = function (fx) {
+			$.cssHooks.width.set(fx.elem, fx.now + fx.unit);
+		};
 
 	_init();
 
