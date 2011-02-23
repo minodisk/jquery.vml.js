@@ -1,0 +1,21 @@
+h1. Change log
+
+h2. v0.0.4 (29 Dec 2010)
+
+* Eliminate CSS pseudo-classes version differences.
+
+h2. v0.0.3 (23 Dec 2010)
+
+* Support CSS pseudo-classes.
+* Fix offsets bug in IE6/7.
+
+h2. v0.0.2 (19 Dec 2010)
+
+* Support 'background-image'.
+* Support 'background-image' offsets.
+
+h2. v0.0.1 (17 Dec 2010)
+
+* Support 'IMG' node.
+* Support transparency or gradient PNGs in IE6/IE7/IE8.
+* Fix problem that pixels with a color value of #02050A are rendered transparent when using 'filter:alpha(opacity=*);' style in IE6/IE7/IE8.

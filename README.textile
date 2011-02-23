@@ -1,0 +1,27 @@
+h1. jquery.vml.js
+
+h2. Change log
+
+"CHANGELOG.textile":https://github.com/minodisk/jquery.vml.js/blob/master/CHANGELOG.textile
+
+h2. About this class
+
+h3. Fix following image problem in ie.
+
+* Transparency PNGs are rendered with blue-gray background.
+* Transparency PNGs are rendered without alpha-channel when using “filter:alpha(opacity=)” style
+* Pixels with a color value of #02050A are rendered transparent when using “filter:alpha(opacity=);” style
+
+h3. Features
+
+* Alpha animation runs as fast as native image.
+* Support CSS Pseudo-classes “:hover” and “:active”.
+* Support IE8 standards mode.
+
+h2. Usage
+
+pre.. $(selector).vml();
+
+h2. License
+
+Licensed under the "MIT license":https://github.com/minodisk/jquery.vml.js/raw/master/MIT-LICENSE.
