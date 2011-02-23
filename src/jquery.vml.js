@@ -171,20 +171,12 @@
 			y = 0;
 		}
 
-		//width++;
-		//height++;
-		//x++;
-		//y++;
-
 		var opacity = $element.css('opacity');
 
 		var $shape = $('<' + _NAMESPACE + ':shape />')
 			.width(width)
 			.height(height)
-			.css({
-			         position: 'absolute'/*,
-			         clip: 'rect(1.01px ' + width.toString() + 'px ' + height.toString() + 'px 1.01px)'/**/
-			     })
+			.css('position', 'absolute')
 			.attr('coordorigin', '1,1')
 			.attr('coordsize', (width * 2).toString() + ',' + (height * 2).toString())
 			.attr('path',
@@ -370,18 +362,21 @@
 		var cssHooksWidth = $.cssHooks.width;
 		$.cssHooks.width = {
 			get: function( elem, computed, extra ) {
-				
-
-				return cssHooksWidth.get( elem, computed, extra );
+				if (elem.isVML) {
+					return elem.shape.style.width;
+				} else {
+					return cssHooksWidth.get( elem, computed, extra );
+				}
 			},
 
 			set: function( elem, value ) {
-				
-
-				return cssHooksWidth.set( elem , value );
+				if (elem.isVML) {
+					elem.shape.style.width = value;
+				} else {
+					return cssHooksWidth.set( elem , value );
+				}
 			}
 		};
-	
 		$.fx.step.width = function (fx) {
 			$.cssHooks.width.set(fx.elem, fx.now + fx.unit);
 		};
