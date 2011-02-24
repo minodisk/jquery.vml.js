@@ -50,21 +50,6 @@
 			$('head').prepend($('<style type="text/css">' + selectors.join(', ') + ' { behavior: url(#default#VML); }</style>'));
 
 			_override();
-
-			/*$(function () {
-				// ':active' pseudo-classes doesn't work on relative positioned elements in IE.
-				// Copy ':active' rule to style sheet as '.jquery_vml_js_active' class.
-				var i, iLength, styleSheet, j, jLength, styleRule;
-				for (i = 0,iLength = doc.styleSheets.length; i < iLength; i++) {
-					styleSheet = doc.styleSheets[i];
-					for (j = 0,jLength = styleSheet.rules.length; j < jLength; j++) {
-						styleRule = styleSheet.rules[j];
-						if (styleRule.selectorText.indexOf(':active') != -1) {
-							styleSheet.addRule(styleRule.selectorText.replace(':active', ' .' + _ACTIVE_CLASS_NAME + ' '), styleRule.style.cssText);
-						}
-					}
-				}
-			});*/
 		}
 	}
 
@@ -81,25 +66,12 @@
 		$element.css('visibility', 'hidden');
 		var $shape = _generateVML(true, $element, $element.attr('src'), $element.width(), $element.height());
 		$element.before($shape);
-		$shape.attr('fillcolor', 'none'); // Set 'fillcolor' after adding the shape to document, or it doesn't work.
+		$shape.attr('fillcolor', 'none');   // Set 'fillcolor' after adding the shape to document, or it doesn't work.
 	}
 
 	function _replaceBackgroundImageStyleWithVML($element) {
 		var backgroundImage = $element.css('backgroundImage');
 		var src = backgroundImage.substr(5, backgroundImage.length - 7);
-		$element.css('backgroundImage', 'none');
-		//$element.css('backgroundImage', 'url(data:image/fig;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==)');
-
-		var position = $element.css('position');
-		if (position != 'absolute') {
-			$element.css('position', 'relative');
-		}
-
-		var $inner = $('<div></div>').css({
-			position: 'relative',
-			opacity: $element.css('opacity')
-		});
-		$element.wrapInner($inner);
 
 		var $shape = _generateVML(
 			false,
@@ -110,57 +82,47 @@
 			_getPosition($element.height(), $element.css('backgroundPositionY'))
 			);
 
-		$shape
+		var $wrapper = $('<div></div>')
 			.css({
-			         top: 0,
-			         left: 0
-			     });
-
-		$element.prepend($shape);
-		$shape.attr('fillcolor', 'none'); // Set 'fillcolor' after adding the shape to document, or it doesn't work.
-
-		/*if ($element[0].tagName == 'A' && $element.css('cursor') == 'auto') {
-			// 'cursor:auto' doesn't work on relative positioned elements in IE7.
-			$element.css('cursor', 'pointer');
-		}
+			         position: 'relative',
+			         marginTop: $element.css('marginTop'),
+			         marginRight: $element.css('marginRight'),
+			         marginBottom: $element.css('marginBottom'),
+			         marginLeft: $element.css('marginLeft')
+			     })
+			.appendTo($element.parent());
+		$shape
+			.appendTo($wrapper)
+			.attr('fillcolor', 'none');     // Set 'fillcolor' after adding the shape to document, or it doesn't work.
 		$element
-			.bind('mouseenter', _onMouseEnterOrLeave)
-			.bind('mouseleave', _onMouseEnterOrLeave)
-			.bind('mousedown', _onMouseDown)
-			.bind('mouseup', _onMouseUpOrBlur)
-			.bind('blur', _onMouseUpOrBlur);/**/
+			.css({
+			         position: 'absolute',
+			         backgroundImage: 'none'
+			     })
+			.bind('mouseenter', _onMouseEvents)
+			.bind('mouseleave', _onMouseEvents)
+			.bind('mousedown', _onMouseEvents)
+			.bind('mouseup', _onMouseEvents)
+			.bind('blur', _onMouseEvents)
+			.appendTo($wrapper);
 	}
 
-	function _onMouseEnterOrLeave(e) {
-		var $element = $(this);
-		_reflectFillPosition($element);
-	}
-
-	function _onMouseDown(e) {
-		var $element = $(this);
-		$element.addClass(_ACTIVE_CLASS_NAME);
-		$element.focus();	// Doesn't focus on relative positioned elements in IE.
-		_reflectFillPosition($element);
-	}
-
-	function _onMouseUpOrBlur(e) {
-		var $element = $(this);
-		$element.removeClass(_ACTIVE_CLASS_NAME);
-		_reflectFillPosition($element);
-	}
-
-	function _reflectFillPosition($element) {
+	function _onMouseEvents(e) {
+		var that = this;
 		// wait for next event loop
 		setTimeout(function () {
-			var width = $element.outerWidth();
-			var height = $element.outerHeight();
-			var x = _getPosition($element.width(), $element.css('backgroundPositionX'));
-			var y = _getPosition($element.height(), $element.css('backgroundPositionY'));
+			$.cssHooks.backgroundPositionX.set(that, $(that).css('backgroundPositionX'));
+			$.cssHooks.backgroundPositionY.set(that, $(that).css('backgroundPositionY'));/**/
 			
-			$($element[0].fill).attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString());
-			$element[0].positionX = x;
-			$element[0].positionY = y;
-		}, 100);
+			/* var width = $element.outerWidth();
+			 var height = $element.outerHeight();
+			 var x = _getPosition($element.width(), $element.css('backgroundPositionX'));
+			 var y = _getPosition($element.height(), $element.css('backgroundPositionY'));
+
+			 $($element[0].fill).attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString());
+			 $element[0].positionX = (x + 0.5) / width;
+			 $element[0].positionY = (y + 0.5) / height;/**/
+		}, 0);
 	}
 
 	function _generateVML(isImageNode, $element, src, width, height, x, y) {
@@ -186,7 +148,7 @@
 		var $fill = $('<' + _NAMESPACE + ':fill />')
 			.attr('src', src)
 			.attr('type', isImageNode ? 'frame' : 'tile')
-			//.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
+			.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
 			.appendTo($shape);
 
 		var opacity = $element.css('opacity');
@@ -197,15 +159,17 @@
 			$shape.css('opacity', opacity);
 		}
 		$element.css('filter', 'none');
+		$element[0].positionX = (x + 0.5) / width;
+		$element[0].positionY = (y + 0.5) / height;
 		$element[0].shape = $shape[0];
 		$element[0].fill = $fill[0];
 		$element[0].isVML = true;
 		$element[0].isImageNode = isImageNode;
 
-		$element.css({
-			backgroundPositionX: x,
-			backgroundPositionY: y
-		});
+		/*$element.css({
+		 backgroundPositionX: x,
+		 backgroundPositionY: y
+		 });*/
 
 		return $shape;
 	}

@@ -2,6 +2,7 @@ h1. Change log
 
 h2. v0.0.4.scaling (24 Feb 2011)
 
+* Rewrite the method of replacing background image with vml, and it makes implementation of CSS pseudo-classes smarter.
 * Support scaling image changing IMG node 'width' and 'height'.
 * Support 'width' and 'height' animation.
 * Support 'background-position' animation.
