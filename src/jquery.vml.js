@@ -36,7 +36,7 @@
 		var doc = document,
 			docMode = doc.documentMode;
 
-		_isTargetBrowser = docMode && (docMode <= 8);
+		_isTargetBrowser = /*@cc_on!@*/false && (docMode && (docMode <= 8)) || (parseFloat($.browser.version) <= 7);
 		if (_isTargetBrowser) {
 			if (!doc.namespaces[_NAMESPACE]) {
 				doc.namespaces.add(_NAMESPACE, 'urn:schemas-microsoft-com:vml');
