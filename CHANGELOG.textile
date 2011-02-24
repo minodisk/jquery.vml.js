@@ -1,5 +1,11 @@
 h1. Change log
 
+h2. v0.0.4.scaling (24 Feb 2011)
+
+* Support scaling image changing IMG node 'width' and 'height'.
+* Support 'width' and 'height' animation.
+* Support 'background-position' animation.
+
 h2. v0.0.4 (29 Dec 2010)
 
 * Eliminate CSS pseudo-classes version differences.
@@ -11,8 +17,8 @@ h2. v0.0.3 (23 Dec 2010)
 
 h2. v0.0.2 (19 Dec 2010)
 
-* Support 'background-image'.
-* Support 'background-image' offsets.
+* Support CSS 'background-image'.
+* Support CSS 'background-image' offsets.
 
 h2. v0.0.1 (17 Dec 2010)
 

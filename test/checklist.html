@@ -1,0 +1,733 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>jquery.vml.js | Checklist</title>
+
+<style>
+
+	* {
+		margin  : 0;
+		padding : 0;
+	}
+
+	body {
+		font-size        : 12px;
+		color            : #3d3b37;
+		font-family      : 'Helvetica', 'Arial', sans-serif;
+		line-height      : 1.35em;
+		background-color : #f9f8f2;
+	}
+
+	table {
+		background      : url(images/check.gif) repeat 0 0;
+		border-collapse : collapse;
+		border-spacing  : 0;
+	}
+
+	th {
+		border         : 1px solid #cbc9c3;
+		background     : #f3f0eb;
+		vertical-align : middle;
+		padding        : 5px;
+	}
+
+	td {
+		border         : 1px solid #cbc9c3;
+		vertical-align : top;
+		padding        : 5px 0 0 5px;
+	}
+
+	a:hover {
+		color: #FF00FF;
+	}
+
+	a:active {
+		color: #FF0000;
+	}
+
+	#offset td {
+		padding : 0;
+	}
+
+	.w1 {
+		width : 100px;
+	}
+
+	.w2 {
+		width : 211px;
+	}
+
+	.w3 {
+		width : 322px;
+	}
+
+	.h1 {
+		height : 100px;
+	}
+
+	.alpha {
+		opacity : 0.5;
+		filter  : alpha(opacity=50);
+	}
+
+	#position .alpha {
+		position : relative;
+		top      : 0;
+		left     : 0;
+	}
+
+	.buggyOpacityJPG {
+		background-image : url('images/buggy_opacity.jpg');
+	}
+
+	.buggyOpacityPNG {
+		background-image : url('images/buggy_opacity.png');
+	}
+
+	.buggyOpacityGIF {
+		background-image : url('images/buggy_opacity.gif');
+	}
+
+	.buggyTransparencyPNG {
+		background-image : url('images/buggy_transparency.png');
+	}
+
+	.buggyTransparencyGIF {
+		background-image : url('images/buggy_transparency.gif');
+	}
+
+	#size .buggyOpacityJPG,
+	#size .buggyOpacityPNG,
+	#size .buggyOpacityGIF,
+	#size .buggyTransparencyPNG,
+	#size .buggyTransparencyGIF {
+		background-repeat : repeat;
+
+		width             : 80px;
+		height            : 80px;
+	}
+
+	.buggyOpacityJPG,
+	.buggyOpacityPNG,
+	.buggyOpacityGIF,
+	.buggyTransparencyPNG,
+	.buggyTransparencyGIF {
+		background-repeat   : no-repeat;
+		background-position : 0 0;
+
+		color               : #0000FF;
+		width               : 100px;
+		height              : 100px;
+	}
+
+	#offset .buggyOpacityJPG,
+	#offset .buggyOpacityPNG,
+	#offset .buggyOpacityGIF,
+	#offset .buggyTransparencyPNG,
+	#offset .buggyTransparencyGIF {
+		background-repeat   : repeat;
+		background-position : 30px 20px;
+
+		width               : 141px;
+		height              : 60px;
+		margin              : 5px 10px;
+		padding             : 20px 30px;
+	}
+
+	#pseudo .buggyOpacityJPG {
+		background-image : url('images/presdo_opacity.jpg');
+	}
+
+	#pseudo .buggyOpacityPNG {
+		background-image : url('images/presdo_opacity.png');
+	}
+
+	#pseudo .buggyOpacityGIF {
+		background-image : url('images/presdo_opacity.gif');
+	}
+
+	#pseudo .buggyTransparencyPNG {
+		background-image : url('images/presdo_transparency.png');
+	}
+
+	#pseudo .buggyTransparencyGIF {
+		background-image : url('images/presdo_transparency.gif');
+	}
+
+	#pseudo .buggyOpacityJPG,
+	#pseudo .buggyOpacityPNG,
+	#pseudo .buggyOpacityGIF,
+	#pseudo .buggyTransparencyPNG,
+	#pseudo .buggyTransparencyGIF {
+		background-repeat   : no-repeat;
+		background-position : 0 0;
+
+		display             : block;
+		width               : 163px;
+		height              : 50px;
+	}
+
+	#pseudo .buggyOpacityJPG:hover,
+	#pseudo .buggyOpacityPNG:hover,
+	#pseudo .buggyOpacityGIF:hover,
+	#pseudo .buggyTransparencyPNG:hover,
+	#pseudo .buggyTransparencyGIF:hover {
+		background-position : 0 -50px;
+	}
+
+	#pseudo .buggyOpacityJPG:active,
+	#pseudo .buggyOpacityPNG:active,
+	#pseudo .buggyOpacityGIF:active,
+	#pseudo .buggyTransparencyPNG:active,
+	#pseudo .buggyTransparencyGIF:active {
+		background-position : 0 -100px;
+	}
+
+</style>
+
+<script type="text/javascript" src="../lib/jquery-1.5.js"></script>
+<script type="text/javascript" src="../src/jquery.vml.js"></script>
+<script>
+	$(function (e) {
+
+		$('.vml').vml();
+
+		$('#alpha button').click(function (e) {
+			$('#alpha .alpha')
+				.stop(true, false)
+				.animate({
+				             opacity: 0
+				         }, 1000)
+				.animate({
+				             opacity: 0.5
+				         }, 1000);
+		});
+
+		$('#position button').click(function (e) {
+			$('#position .alpha')
+				.stop(true, false)
+				.animate({
+				             left: 222
+				         }, 1000)
+				.animate({
+				             left: 0
+				         }, 1000);
+		});
+
+		$('#size button').click(function (e) {
+			$('#size .alpha')
+				.stop(true, false)
+				.animate({
+				             width: 322,
+				             height: 100
+				         }, 1000)
+				.animate({
+				             width: 80,
+				             height: 80
+				         }, 1000);
+		});
+
+		$('#offset button').click(function (e) {
+			$('#offset .alpha')
+				.stop(true, false)
+				.animate({
+				             backgroundPositionX: 170,
+				             backgroundPositionY: 80
+				         }, 1000)
+				.animate({
+				             backgroundPositionX: 30,
+				             backgroundPositionY: 20
+				         }, 1000);
+		});
+
+	});
+</script>
+</head>
+<body>
+
+<div id="header">
+	<h2>jquery.vml.js | Checklist</h2>
+
+	<p>Detail: <a href="https://github.com/minodisk/jquery.vml.js">minodisk/jquery.vml.js - GitHub</a></p>
+</div>
+
+<div id="alpha" class="section">
+	<div class="header">
+		<h3>Alpha Animation (filter:alpha(opacity=))</h3>
+	</div>
+	<div class="body">
+		<button>start animation</button>
+		<table>
+			<tr>
+				<th rowspan="2">opacity / transparency</th>
+				<th rowspan="2">extension</th>
+				<th colspan="3">&lt;img src="*" /&gt;</th>
+				<th colspan="3">&lt;* style="background-image:*;" /&gt;</th>
+			</tr>
+			<tr>
+				<th class="w1">raw</th>
+				<th class="w1">raw+alpha</th>
+				<th class="w1">vml()+alpha</th>
+				<th class="w1">raw</th>
+				<th class="w1">raw+alpha</th>
+				<th class="w1">vml()+alpha</th>
+			</tr>
+			<tr>
+				<th rowspan="3">opacity</th>
+				<th class="h1">jpg</th>
+				<td><img src="images/buggy_opacity.jpg"/></td>
+				<td><img src="images/buggy_opacity.jpg" class="alpha"/></td>
+				<td><img src="images/buggy_opacity.jpg" class="alpha vml"/></td>
+				<td>
+					<div class="buggyOpacityJPG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">png</th>
+				<td><img src="images/buggy_opacity.png"/></td>
+				<td><img src="images/buggy_opacity.png" class="alpha"/></td>
+				<td><img src="images/buggy_opacity.png" class="alpha vml"/></td>
+				<td>
+					<div class="buggyOpacityPNG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td><img src="images/buggy_opacity.gif"/></td>
+				<td><img src="images/buggy_opacity.gif" class="alpha"/></td>
+				<td><img src="images/buggy_opacity.gif" class="alpha vml"/></td>
+				<td>
+					<div class="buggyOpacityGIF">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2">transparency</th>
+				<th class="h1">png</th>
+				<td><img src="images/buggy_transparency.png"/></td>
+				<td><img src="images/buggy_transparency.png" class="alpha"/></td>
+				<td><img src="images/buggy_transparency.png" class="alpha vml"/></td>
+				<td>
+					<div class="buggyTransparencyPNG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e
+						t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+						s
+						a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td><img src="images/buggy_transparency.gif"/></td>
+				<td><img src="images/buggy_transparency.gif" class="alpha"/></td>
+				<td><img src="images/buggy_transparency.gif" class="alpha vml"/></td>
+				<td>
+					<div class="buggyTransparencyGIF">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e
+						t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+						s
+						a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="position" class="section">
+	<div class="header">
+		<h3>Position Animation (top, left)</h3>
+	</div>
+	<div class="body">
+		<button>start animation</button>
+		<table>
+			<tr>
+				<th rowspan="2">opacity / transparency</th>
+				<th rowspan="2">extension</th>
+				<th>&lt;img src="*" /&gt;</th>
+				<th>&lt;* style="background-image:*;" /&gt;</th>
+			</tr>
+			<tr>
+				<th class="w3">vml()+alpha</th>
+				<th class="w3">vml()+alpha</th>
+			</tr>
+			<tr>
+				<th rowspan="3">opacity</th>
+				<th class="h1">jpg</th>
+				<td>
+					<img src="images/buggy_opacity.jpg" class="alpha vml"/>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">png</th>
+				<td>
+					<img src="images/buggy_opacity.png" class="alpha vml"/>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<img src="images/buggy_opacity.gif" class="alpha vml"/>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2">transparency</th>
+				<th class="h1">png</th>
+				<td>
+					<img src="images/buggy_transparency.png" class="alpha vml"/>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l
+						e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<img src="images/buggy_transparency.gif" class="alpha vml"/>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l
+						e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="size" class="section">
+	<div class="header">
+		<h3>Size Animation (width, height)</h3>
+	</div>
+	<div class="body">
+		<button>start animation</button>
+		<table>
+			<tr>
+				<th rowspan="2">opacity / transparency</th>
+				<th rowspan="2">extension</th>
+				<th>&lt;img src="*" /&gt;</th>
+				<th>&lt;* style="background-image:*;" /&gt;</th>
+			</tr>
+			<tr>
+				<th class="w3">vml()+alpha</th>
+				<th class="w3">vml()+alpha</th>
+			</tr>
+			<tr>
+				<th rowspan="3">opacity</th>
+				<th class="h1">jpg</th>
+				<td>
+					<img src="images/buggy_opacity.jpg" class="alpha vml" width="80" height="80"/>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">png</th>
+				<td>
+					<img src="images/buggy_opacity.png" class="alpha vml" width="80"
+					     height="80"/>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<img src="images/buggy_opacity.gif" class="alpha vml" width="80"
+					     height="80"/>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2">transparency</th>
+				<th class="h1">png</th>
+				<td>
+					<img src="images/buggy_transparency.png" class="alpha vml" width="80"
+					     height="80"/>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l
+						e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<img src="images/buggy_transparency.gif" class="alpha vml" width="80"
+					     height="80"/>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l
+						e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="offset" class="section">
+	<div class="header">
+		<h3>Offsets (margin, padding, background-repeat, background-position)</h3>
+	</div>
+	<div class="body">
+		<button>start animation</button>
+		<table>
+			<tr>
+				<th rowspan="2">opacity / transparency</th>
+				<th rowspan="2">extension</th>
+				<th colspan="3">&lt;* style="background-image:*;" /&gt;</th>
+			</tr>
+			<tr>
+				<th class="w2">raw</th>
+				<th class="w2">raw+alpha</th>
+				<th class="w2">vml()+alpha</th>
+			</tr>
+			<tr>
+				<th rowspan="3">opacity</th>
+				<th class="h1">jpg</th>
+				<td>
+					<div class="buggyOpacityJPG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityJPG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">png</th>
+				<td>
+					<div class="buggyOpacityPNG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<div class="buggyOpacityGIF">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m p l e
+						t e
+						x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyOpacityGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x
+						t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th rowspan="2">transparency</th>
+				<th class="h1">png</th>
+				<td>
+					<div class="buggyTransparencyPNG">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e
+						t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+						s
+						a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyPNG alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="h1">gif</th>
+				<td>
+					<div class="buggyTransparencyGIF">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t s a m
+						p l e
+						t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha">s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+						s
+						a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+				<td>
+					<div class="buggyTransparencyGIF alpha vml">s a m p l e t e x t s a m p l e t e x t s a m p l e t
+						e x t s a m p l e t e x t s a m p l e t e x t s a m p l e t e x t
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="pseudo" class="section">
+	<div class="header">
+		<h3>CSS Pseudo-classes (:hover, :active)</h3>
+	</div>
+	<div class="body">
+		<table>
+			<tr>
+				<th rowspan="2">opacity / transparency</th>
+				<th rowspan="2">extension</th>
+				<th colspan="3">&lt;* style="background-image:*;" /&gt;</th>
+			</tr>
+			<tr>
+				<th class="w2">raw</th>
+				<th class="w2">raw+alpha</th>
+				<th class="w2">vml()+alpha</th>
+			</tr>
+			<tr>
+				<th rowspan="3">opacity</th>
+				<th>jpg</th>
+				<td>
+					<div style="position:relative">
+						<div style="position:absolute; width:163px; height:50px; background-image:url(images/presdo_opacity.jpg);"></div>
+						<a class="buggyOpacityJPG" href="#pseudo" style="position:absolute;background-image:none;">sample text</a>
+					</div>
+				</td>
+				<td><a class="buggyOpacityJPG alpha" href="#pseudo">sample text</a></td>
+				<td><a class="buggyOpacityJPG alpha vml" href="#pseudo">sample text</a></td>
+			</tr>
+			<tr>
+				<th>png</th>
+				<td><a class="buggyOpacityPNG" href="#pseudo">sample text</a></td>
+				<td><a class="buggyOpacityPNG alpha" href="#pseudo">sample text</a></td>
+				<td><a class="buggyOpacityPNG alpha vml" href="#pseudo">sample text</a></td>
+			</tr>
+			<tr>
+				<th>gif</th>
+				<td><a class="buggyOpacityGIF" href="#pseudo">sample text</a></td>
+				<td><a class="buggyOpacityGIF alpha" href="#pseudo">sample text</a></td>
+				<td><a class="buggyOpacityGIF alpha vml" href="#pseudo">sample text</a></td>
+			</tr>
+			<tr>
+				<th rowspan="2">transparency</th>
+				<th>png</th>
+				<td><a class="buggyTransparencyPNG" href="#pseudo">sample text</a></td>
+				<td><a class="buggyTransparencyPNG alpha" href="#pseudo">sample text</a></td>
+				<td><a class="buggyTransparencyPNG alpha vml" href="#pseudo">sample text</a>
+				</td>
+			</tr>
+			<tr>
+				<th>gif</th>
+				<td><a class="buggyTransparencyGIF" href="#pseudo">sample text</a></td>
+				<td><a class="buggyTransparencyGIF alpha" href="#pseudo">sample text</a></td>
+				<td><a class="buggyTransparencyGIF alpha vml" href="#pseudo">sample text</a>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+</body>
+</html>

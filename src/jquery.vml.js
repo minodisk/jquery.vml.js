@@ -5,6 +5,10 @@
  * Copyright (c) 2011 Daisuke MINO
  * Licensed under the MIT license.
  * https://github.com/minodisk/jquery.vml.js/raw/master/MIT-LICENSE
+ *
+ * Thanks
+ * Some code is used DD_belatedPNG (http://www.dillerdesign.com/experiment/DD_belatedPNG/) written by Drew Diller is as a reference.
+ * Some magic numbers of shape and fill properties found by Atsunori IIDA makes possible scaling animation.
  */
 
 (function ($) {
@@ -21,8 +25,7 @@
 	// PRIVATE VARIABLES
 	//------------------------------------------------------------------------------------------------------------------
 
-	var _isTargetBrowser,
-		_hasLayoutProblem;
+	var _isTargetBrowser;
 
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -30,46 +33,39 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	function _init() {
-		var doc = document;
-		_isTargetBrowser = (doc.documentMode) ? doc.documentMode <= 8 : /*@cc_on!@*/false;
+		var doc = document,
+			docMode = doc.documentMode;
 
+		_isTargetBrowser = docMode && (docMode <= 8);
 		if (_isTargetBrowser) {
-			_hasLayoutProblem = (doc.documentMode) ? doc.documentMode <= 7 : true;
-
 			if (!doc.namespaces[_NAMESPACE]) {
 				doc.namespaces.add(_NAMESPACE, 'urn:schemas-microsoft-com:vml');
 			}
-			var nodeNames = (doc.documentMode == 8) ? ['shape', 'fill'] : ['*'];
-			$('head')
-				.prepend($('<style type="text/css">' +
-				_generateSelector(nodeNames) + ' { behavior: url(#default#VML); }' +
-				'</style>'));
+			var nodeNames = (docMode == 8) ? ['shape', 'fill'] : ['*'],
+				selectors = [],
+				i, len;
+			for (i = 0,len = nodeNames.length; i < len; i++) {
+				selectors[i] = _NAMESPACE + '\\:' + nodeNames[i];
+			}
+			$('head').prepend($('<style type="text/css">' + selectors.join(', ') + ' { behavior: url(#default#VML); }</style>'));
 
 			_override();
 
-			$(function () {
+			/*$(function () {
 				// ':active' pseudo-classes doesn't work on relative positioned elements in IE.
-				// Copy ':active' rule to style sheet as '.xml2vml_active' class.
+				// Copy ':active' rule to style sheet as '.jquery_vml_js_active' class.
 				var i, iLength, styleSheet, j, jLength, styleRule;
 				for (i = 0,iLength = doc.styleSheets.length; i < iLength; i++) {
 					styleSheet = doc.styleSheets[i];
 					for (j = 0,jLength = styleSheet.rules.length; j < jLength; j++) {
 						styleRule = styleSheet.rules[j];
 						if (styleRule.selectorText.indexOf(':active') != -1) {
-							styleSheet.addRule(styleRule.selectorText.replace(':active', '.' + _ACTIVE_CLASS_NAME), styleRule.style.cssText);
+							styleSheet.addRule(styleRule.selectorText.replace(':active', ' .' + _ACTIVE_CLASS_NAME + ' '), styleRule.style.cssText);
 						}
 					}
 				}
-			});
+			});*/
 		}
-	}
-
-	function _generateSelector(nodeNames) {
-		var selectors = [];
-		for (var i = 0, length = nodeNames.length; i < length; i++) {
-			selectors[i] = _NAMESPACE + '\\:' + nodeNames[i];
-		}
-		return selectors.join(', ');
 	}
 
 	function _replaceWithVML(element) {
@@ -91,8 +87,9 @@
 	function _replaceBackgroundImageStyleWithVML($element) {
 		var backgroundImage = $element.css('backgroundImage');
 		var src = backgroundImage.substr(5, backgroundImage.length - 7);
-
 		$element.css('backgroundImage', 'none');
+		//$element.css('backgroundImage', 'url(data:image/fig;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==)');
+
 		var position = $element.css('position');
 		if (position != 'absolute') {
 			$element.css('position', 'relative');
@@ -107,8 +104,8 @@
 		var $shape = _generateVML(
 			false,
 			$element, src,
-			$element.width() + parseInt($element.css('paddingLeft')) + parseInt($element.css('paddingRight')),
-			$element.height() + parseInt($element.css('paddingTop')) + parseInt($element.css('paddingBottom')),
+			$element.outerWidth(),
+			$element.outerHeight(),
 			_getPosition($element.width(), $element.css('backgroundPositionX')),
 			_getPosition($element.height(), $element.css('backgroundPositionY'))
 			);
@@ -122,7 +119,7 @@
 		$element.prepend($shape);
 		$shape.attr('fillcolor', 'none'); // Set 'fillcolor' after adding the shape to document, or it doesn't work.
 
-		if ($element[0].tagName == 'A' && $element.css('cursor') == 'auto') {
+		/*if ($element[0].tagName == 'A' && $element.css('cursor') == 'auto') {
 			// 'cursor:auto' doesn't work on relative positioned elements in IE7.
 			$element.css('cursor', 'pointer');
 		}
@@ -131,7 +128,7 @@
 			.bind('mouseleave', _onMouseEnterOrLeave)
 			.bind('mousedown', _onMouseDown)
 			.bind('mouseup', _onMouseUpOrBlur)
-			.bind('blur', _onMouseUpOrBlur);
+			.bind('blur', _onMouseUpOrBlur);/**/
 	}
 
 	function _onMouseEnterOrLeave(e) {
@@ -153,14 +150,17 @@
 	}
 
 	function _reflectFillPosition($element) {
-		// Wait for reflecting style.
+		// wait for next event loop
 		setTimeout(function () {
-			var width = $element.width() + parseInt($element.css('paddingLeft')) + parseInt($element.css('paddingRight'));
-			var height = $element.height() + parseInt($element.css('paddingTop')) + parseInt($element.css('paddingBottom'));
+			var width = $element.outerWidth();
+			var height = $element.outerHeight();
 			var x = _getPosition($element.width(), $element.css('backgroundPositionX'));
 			var y = _getPosition($element.height(), $element.css('backgroundPositionY'));
+			
 			$($element[0].fill).attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString());
-		}, 0);
+			$element[0].positionX = x;
+			$element[0].positionY = y;
+		}, 100);
 	}
 
 	function _generateVML(isImageNode, $element, src, width, height, x, y) {
@@ -170,45 +170,42 @@
 		if (!y) {
 			y = 0;
 		}
-
-		var opacity = $element.css('opacity');
+		var width2Str = (width * 2).toString(),
+			height2Str = (height * 2).toString();
 
 		var $shape = $('<' + _NAMESPACE + ':shape />')
 			.width(width)
 			.height(height)
 			.css('position', 'absolute')
 			.attr('coordorigin', '1,1')
-			.attr('coordsize', (width * 2).toString() + ',' + (height * 2).toString())
-			.attr('path',
-				'm 0,0 l ' +
-				(width * 2).toString() + ',0, ' +
-				(width * 2).toString() + ',' + (height * 2).toString() + ', ' +
-				'0,' + (height * 2).toString() +
-				' x e'
-			)
+			.attr('coordsize', width2Str + ',' + height2Str)
+			.attr('path', 'm 0,0 l ' + width2Str + ',0, ' + width2Str + ',' + height2Str + ', ' + '0,' + height2Str + ' x e')
 			.attr('stroked', 'false')
 			.attr('filled', 'true');
 
 		var $fill = $('<' + _NAMESPACE + ':fill />')
 			.attr('src', src)
 			.attr('type', isImageNode ? 'frame' : 'tile')
-			.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
+			//.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
 			.appendTo($shape);
 
-		if (src.search('.png') != -1) {
-			$element[0].isPNG = true;
+		var opacity = $element.css('opacity');
+		if ($element[0].isPNG = (src.search('.png') != -1)) {
 			$fill.attr('opacity', opacity);
 		}
 		else {
-			$element[0].isPNG = false;
 			$shape.css('opacity', opacity);
 		}
 		$element.css('filter', 'none');
-
 		$element[0].shape = $shape[0];
 		$element[0].fill = $fill[0];
 		$element[0].isVML = true;
 		$element[0].isImageNode = isImageNode;
+
+		$element.css({
+			backgroundPositionX: x,
+			backgroundPositionY: y
+		});
 
 		return $shape;
 	}
@@ -267,7 +264,11 @@
 	}
 
 	function _override() {
-		// Override opacity
+		if (!$.cssHooks) {
+			throw new Error('jQuery 1.4.3 or above is required for jquery.vml.js to work.');
+			return;
+		}
+
 		if (!jQuery.support.opacity) {
 			jQuery.cssHooks.opacity = {
 				get: function(elem, computed) {
@@ -283,7 +284,6 @@
 						return _getOpacityAsFilter(elem, computed);
 					}
 				},
-
 				set: function(elem, value) {
 					if (elem.isVML) {
 						if (elem.isPNG) {
@@ -292,7 +292,6 @@
 						else {
 							_setOpacityAsFilter(elem.shape, value);
 						}
-
 						if (!elem.isImageNode) {
 							_setOpacityAsFilter(elem.childNodes[1], value);
 						}
@@ -304,7 +303,6 @@
 			};
 		}
 
-		// Override left
 		$.cssHooks.left = {
 			get: function (elem, computed) {
 				if (elem.isVML && elem.isImageNode) {
@@ -323,7 +321,6 @@
 			$.cssHooks.left.set(fx.elem, fx.now + fx.unit);
 		};
 
-		// Override top
 		$.cssHooks.top = {
 			get: function (elem, computed) {
 				if (elem.isVML && elem.isImageNode) {
@@ -342,38 +339,27 @@
 			$.cssHooks.top.set(fx.elem, fx.now + fx.unit);
 		};
 
-		// Override width
-		/*$.cssHooks.top = {
-			get: function (elem, computed) {
-				if (elem.isVML && elem.isImageNode) {
-					return elem.shape.style.top;
-				}
-				return elem.style.top;
-			},
-			set: function (elem, value) {
-				if (elem.isVML && elem.isImageNode) {
-					elem.shape.style.top = value;
-				}
-				elem.style.top = value;
-			}
-		};*/
-	}
+		var _super = {
+			width: $.cssHooks.width,
+			height: $.cssHooks.height
+		};
 
-		var cssHooksWidth = $.cssHooks.width;
 		$.cssHooks.width = {
-			get: function( elem, computed, extra ) {
-				if (elem.isVML) {
+			get: function(elem, computed, extra) {
+				if (elem.isVML && elem.shape.style) {
 					return elem.shape.style.width;
 				} else {
-					return cssHooksWidth.get( elem, computed, extra );
+					return _super.width.get(elem, computed, extra);
 				}
 			},
-
-			set: function( elem, value ) {
+			set: function(elem, value) {
 				if (elem.isVML) {
 					elem.shape.style.width = value;
+					if (!elem.isImageNode) {
+						elem.style.width = value;
+					}
 				} else {
-					return cssHooksWidth.set( elem , value );
+					return _super.width.set(elem, value);
 				}
 			}
 		};
@@ -381,11 +367,72 @@
 			$.cssHooks.width.set(fx.elem, fx.now + fx.unit);
 		};
 
+		$.cssHooks.height = {
+			get: function(elem, computed, extra) {
+				if (elem.isVML && elem.shape.style) {
+					return elem.shape.style.height;
+				} else {
+					return _super.height.get(elem, computed, extra);
+				}
+			},
+			set: function(elem, value) {
+				if (elem.isVML) {
+					elem.shape.style.height = value;
+					if (!elem.isImageNode) {
+						elem.style.height = value;
+					}
+				} else {
+					return _super.height.set(elem, value);
+				}
+			}
+		};
+		$.fx.step.height = function (fx) {
+			$.cssHooks.height.set(fx.elem, fx.now + fx.unit);
+		};
+
+		$.cssHooks.backgroundPositionX = {
+			set: function(elem, value, unit) {
+				if (elem.isVML) {
+					if (typeof value == 'string') {
+						value = Number(value.substr(0, value.length - 2));
+					}
+					var positionX = (value + 0.5) / $(elem).outerWidth(),
+						positionY = elem.positionY;
+					elem.positionX = positionX;
+					elem.fill.position = [positionX, positionY];
+				}
+				elem.style.backgroundPositionX = value + (unit ? unit : '');
+			}
+		};
+		$.fx.step.backgroundPositionX = function (fx) {
+			$.cssHooks.backgroundPositionX.set(fx.elem, fx.now, fx.unit);
+		};
+
+		$.cssHooks.backgroundPositionY = {
+			set: function(elem, value, unit) {
+				if (elem.isVML) {
+					if (typeof value == 'string') {
+						value = Number(value.substr(0, value.length - 2));
+					}
+					var positionX = elem.positionX,
+						positionY = (value + 0.5) / $(elem).outerHeight();
+					elem.positionY = positionY;
+					elem.fill.position = [positionX, positionY];
+				}
+				elem.style.backgroundPositionY = value + (unit ? unit : '');
+			}
+		};
+		$.fx.step.backgroundPositionY = function (fx) {
+			$.cssHooks.backgroundPositionY.set(fx.elem, fx.now, fx.unit);
+		};
+
+	}
+
 	_init();
 
-	//------------------------------------------------------------------------------------------------------------------
-	// PUBLIC METHODS
-	//------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+// PUBLIC METHODS
+//------------------------------------------------------------------------------------------------------------------
 
 	$.fn.vml = function () {
 		if (_isTargetBrowser) {
