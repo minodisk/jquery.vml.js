@@ -18,7 +18,6 @@
 	//------------------------------------------------------------------------------------------------------------------
 
 	var _NAMESPACE = 'jquery_vml_js';
-	var _ACTIVE_CLASS_NAME = _NAMESPACE + '_active';
 
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -35,13 +34,12 @@
 	function _init() {
 		var doc = document,
 			docMode = doc.documentMode;
-
-		_isTargetBrowser = /*@cc_on!@*/false && (docMode && (docMode <= 8)) || (parseFloat($.browser.version) <= 7);
+		_isTargetBrowser = /*@cc_on!@*/false && ( (docMode && (docMode <= 8)) || (parseFloat($.browser.version) <= 7) );
 		if (_isTargetBrowser) {
 			if (!doc.namespaces[_NAMESPACE]) {
 				doc.namespaces.add(_NAMESPACE, 'urn:schemas-microsoft-com:vml');
 			}
-			var nodeNames = (docMode == 8) ? ['shape', 'fill'] : ['*'],
+			var nodeNames = (docMode === 8) ? ['shape', 'fill'] : ['*'],
 				selectors = [],
 				i, len;
 			for (i = 0,len = nodeNames.length; i < len; i++) {
@@ -53,130 +51,48 @@
 		}
 	}
 
-	function _replaceWithVML(element) {
-		if (element.nodeName == 'IMG') {
-			_replaceImageNodeWithVML($(element));
-		}
-		else if (element.currentStyle.backgroundImage.toLowerCase().search(/(\.jpg|\.jpeg|\.png|\.gif)/) != -1) {
-			_replaceBackgroundImageStyleWithVML($(element));
+	function _replaceWithVML(elem) {
+		var $elem = $(elem);
+		if (elem.nodeName.toLowerCase() === 'img') {
+
+			var $vml = _wrapWithVML($elem, $elem.attr('src'), $elem.width(), $elem.height(), 0, 0);
+			$elem[0].fill.type = 'frame';
+			$elem[0].isImageNode = true;
+			$elem.css('visibility', 'hidden');
+
+		} else if (elem.currentStyle.backgroundImage.toLowerCase().search(/(\.jpg|\.jpeg|\.png|\.gif)/) != -1) {
+
+			var backgroundImage = $elem.css('backgroundImage');
+			var src = backgroundImage.substr(5, backgroundImage.length - 7);
+			var isNoRepeat = $elem.css('backgroundRepeat').indexOf('no') !== -1;
+
+			var width = (isNoRepeat) ? $elem.width() : $elem.innerWidth();
+			var height = (isNoRepeat) ? $elem.height() : $elem.innerHeight();
+			var x = _figurePosition($elem.css('backgroundPositionX'), width);
+			var y = _figurePosition($elem.css('backgroundPositionY'), height);
+			var $vml = _wrapWithVML($elem, src, width, height, x, y, isNoRepeat);
+			$elem[0].fill.type = 'tile';
+			$elem[0].isImageNode = false;
+			$elem
+				.css({
+				         position: 'relative',
+				         margin: 0,
+				         // If sets the background image 'none', the element loses hit area.
+				         // So, replace the background image with a 1px transparent Base64 encoded gif.
+				         backgroundImage: 'url(data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==)'
+				     })
+				.bind('mouseenter', _onMouseEvents)
+				.bind('mouseleave', _onMouseEvents)
+				.bind('mousedown', _onMouseEvents)
+				.bind('mouseup', _onMouseEvents)
+				.bind('blur', _onMouseEvents);
+
 		}
 	}
 
-	function _replaceImageNodeWithVML($element) {
-		$element.css('visibility', 'hidden');
-		var $shape = _generateVML(true, $element, $element.attr('src'), $element.width(), $element.height());
-		$element.before($shape);
-		$shape.attr('fillcolor', 'none');   // Set 'fillcolor' after adding the shape to document, or it doesn't work.
-	}
-
-	function _replaceBackgroundImageStyleWithVML($element) {
-		var backgroundImage = $element.css('backgroundImage');
-		var src = backgroundImage.substr(5, backgroundImage.length - 7);
-
-		var $shape = _generateVML(
-			false,
-			$element, src,
-			$element.outerWidth(),
-			$element.outerHeight(),
-			_getPosition($element.width(), $element.css('backgroundPositionX')),
-			_getPosition($element.height(), $element.css('backgroundPositionY'))
-			);
-
-		var $wrapper = $('<div></div>')
-			.css({
-			         position: 'relative',
-			         marginTop: $element.css('marginTop'),
-			         marginRight: $element.css('marginRight'),
-			         marginBottom: $element.css('marginBottom'),
-			         marginLeft: $element.css('marginLeft')
-			     })
-			.appendTo($element.parent());
-		$shape
-			.appendTo($wrapper)
-			.attr('fillcolor', 'none');     // Set 'fillcolor' after adding the shape to document, or it doesn't work.
-		$element
-			.css({
-			         position: 'absolute',
-			         backgroundImage: 'none'
-			     })
-			.bind('mouseenter', _onMouseEvents)
-			.bind('mouseleave', _onMouseEvents)
-			.bind('mousedown', _onMouseEvents)
-			.bind('mouseup', _onMouseEvents)
-			.bind('blur', _onMouseEvents)
-			.appendTo($wrapper);
-	}
-
-	function _onMouseEvents(e) {
-		var that = this;
-		// wait for next event loop
-		setTimeout(function () {
-			$.cssHooks.backgroundPositionX.set(that, $(that).css('backgroundPositionX'));
-			$.cssHooks.backgroundPositionY.set(that, $(that).css('backgroundPositionY'));/**/
-			
-			/* var width = $element.outerWidth();
-			 var height = $element.outerHeight();
-			 var x = _getPosition($element.width(), $element.css('backgroundPositionX'));
-			 var y = _getPosition($element.height(), $element.css('backgroundPositionY'));
-
-			 $($element[0].fill).attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString());
-			 $element[0].positionX = (x + 0.5) / width;
-			 $element[0].positionY = (y + 0.5) / height;/**/
-		}, 0);
-	}
-
-	function _generateVML(isImageNode, $element, src, width, height, x, y) {
-		if (!x) {
-			x = 0;
-		}
-		if (!y) {
-			y = 0;
-		}
-		var width2Str = (width * 2).toString(),
-			height2Str = (height * 2).toString();
-
-		var $shape = $('<' + _NAMESPACE + ':shape />')
-			.width(width)
-			.height(height)
-			.css('position', 'absolute')
-			.attr('coordorigin', '1,1')
-			.attr('coordsize', width2Str + ',' + height2Str)
-			.attr('path', 'm 0,0 l ' + width2Str + ',0, ' + width2Str + ',' + height2Str + ', ' + '0,' + height2Str + ' x e')
-			.attr('stroked', 'false')
-			.attr('filled', 'true');
-
-		var $fill = $('<' + _NAMESPACE + ':fill />')
-			.attr('src', src)
-			.attr('type', isImageNode ? 'frame' : 'tile')
-			.attr('position', ((x + 0.5) / width).toString() + ',' + ((y + 0.5) / height).toString())
-			.appendTo($shape);
-
-		var opacity = $element.css('opacity');
-		if ($element[0].isPNG = (src.search('.png') != -1)) {
-			$fill.attr('opacity', opacity);
-		}
-		else {
-			$shape.css('opacity', opacity);
-		}
-		$element.css('filter', 'none');
-		$element[0].positionX = (x + 0.5) / width;
-		$element[0].positionY = (y + 0.5) / height;
-		$element[0].shape = $shape[0];
-		$element[0].fill = $fill[0];
-		$element[0].isVML = true;
-		$element[0].isImageNode = isImageNode;
-
-		/*$element.css({
-		 backgroundPositionX: x,
-		 backgroundPositionY: y
-		 });*/
-
-		return $shape;
-	}
-
-	function _getPosition(size, posStr) {
+	function _figurePosition(pos, size) {
 		var ratio;
-		switch (posStr) {
+		switch (pos) {
 			case 'left':
 			case 'top':
 				ratio = 0;
@@ -189,13 +105,107 @@
 				ratio = 1;
 				break;
 			default:
-				if (posStr.search('%') != -1) {
-					ratio = parseFloat(posStr) / 100;
+				if (pos.indexOf('%') != -1) {
+					ratio = parseFloat(pos) / 100;
 				}
 				break;
 		}
 
-		return (ratio) ? size * ratio : parseFloat(posStr);
+		return (ratio !== undefined) ? size * ratio : parseFloat(pos);
+	}
+
+	function _wrapWithVML($elem, src, width, height, x, y, clip) {
+		var opacity = $elem.css('opacity'),
+			borderLeftWidth = $elem.css('borderLeftWidth');
+
+		var inheritStyleProps = [
+			'opacity',
+			'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+			'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+			'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle',
+			'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor',
+			'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'
+		],
+			inheritStyle = {},
+			i, len, prop;
+		for (i = 0, len = inheritStyleProps.length; i < len; i++) {
+			prop = inheritStyleProps[i];
+			inheritStyle[prop] = $elem.css(prop);
+		}
+		$elem.css({
+			marginLeft: 0,
+			borderLeft: 0
+		});
+
+		var width2Str = (width * 2).toString(),
+			height2Str = (height * 2).toString();
+		var $shape = $('<' + _NAMESPACE + ':shape />')
+			.width(width)
+			.height(height)
+			.css('position', 'absolute')
+			.attr('coordorigin', '1,1')
+			.attr('coordsize', width2Str + ',' + height2Str)
+			.attr('path', 'm 0,0 l ' + width2Str + ',0, ' + width2Str + ',' + height2Str + ', ' + '0,' + height2Str + ' x e')
+			.attr('stroked', 'false')
+			.attr('filled', 'true');
+
+		if (clip) {
+			$shape.css('clip', 'rect(1.01px ' + width.toString() + 'px ' + height.toString() + 'px 1.01px)');
+		}
+
+		var $fill = $('<' + _NAMESPACE + ':fill />')
+			.attr('src', src)
+			.appendTo($shape);
+
+		var $vml = $('<div></div>')
+			.addClass(_NAMESPACE)
+			.width(width)
+			.height(height)
+			.css({
+			         position: 'relative'/*,
+			         marginTop: $elem.css('marginTop'),
+			         marginRight: $elem.css('marginRight'),
+			         marginBottom: $elem.css('marginBottom'),
+			         marginLeft: $elem.css('marginLeft')*/
+			     })
+			.appendTo($elem.parent());
+		$shape
+			.appendTo($vml)
+			.attr('fillcolor', 'none');     // Set 'fillcolor' after adding the shape to document, or it doesn't work.
+		$elem.appendTo($vml);
+
+		var elem = $elem[0];
+		elem.vml = $vml[0];
+		elem.shape = $shape[0];
+		elem.fill = $fill[0];
+		elem.isVML = true;
+		elem.positionX = 0;
+		elem.positionY = 0;
+		$.cssHooks.backgroundPositionX.set($elem[0], x, '', true);
+		$.cssHooks.backgroundPositionY.set($elem[0], y, '', true);
+
+		if ($elem[0].isPNG = (src.search('.png') != -1)) {
+			$fill.attr('opacity', inheritStyle.opacity);
+		} else {
+			$shape.css('opacity', inheritStyle.opacity);
+		}
+		$vml.css('opacity', inheritStyle.opacity);
+		$.cssHooks.marginLeft.set($vml[0], inheritStyle.marginLeft);
+		$.cssHooks.borderLeftStyle.set($vml[0], inheritStyle.borderLeftStyle);
+		$.cssHooks.borderLeftWidth.set($vml[0], inheritStyle.borderLeftWidth);
+		$.cssHooks.borderLeftColor.set($vml[0], inheritStyle.borderLeftColor);
+		$.cssHooks.paddingLeft.set(elem, inheritStyle.paddingLeft);
+
+		return $vml;
+	}
+
+	function _onMouseEvents(e) {
+		var that = this;
+		// wait for next event loop
+		setTimeout(function () {
+			$.cssHooks.backgroundPositionX.set(that, $(that).css('backgroundPositionX'), '', true);
+			$.cssHooks.backgroundPositionY.set(that, $(that).css('backgroundPositionY'), '', true);
+		}, 0);
 	}
 
 	var ralpha = /alpha\([^)]*\)/i,
@@ -239,12 +249,10 @@
 					if (elem.isVML) {
 						if (elem.isPNG) {
 							return parseFloat(elem.fill.opacity);
-						}
-						else {
+						} else {
 							return _getOpacityAsFilter(elem.shape, computed);
 						}
-					}
-					else {
+					} else {
 						return _getOpacityAsFilter(elem, computed);
 					}
 				},
@@ -252,15 +260,13 @@
 					if (elem.isVML) {
 						if (elem.isPNG) {
 							elem.fill.opacity = value;
-						}
-						else {
+						} else {
 							_setOpacityAsFilter(elem.shape, value);
 						}
 						if (!elem.isImageNode) {
-							_setOpacityAsFilter(elem.childNodes[1], value);
+							_setOpacityAsFilter(elem, value);
 						}
-					}
-					else {
+					} else {
 						_setOpacityAsFilter(elem, value);
 					}
 				}
@@ -269,16 +275,18 @@
 
 		$.cssHooks.left = {
 			get: function (elem, computed) {
-				if (elem.isVML && elem.isImageNode) {
-					return elem.shape.style.left;
+				if (elem.isVML) {
+					return elem.vml.style.left;
+				} else {
+					return elem.style.left;
 				}
-				return elem.style.left;
 			},
 			set: function (elem, value) {
-				if (elem.isVML && elem.isImageNode) {
-					elem.shape.style.left = value;
+				if (elem.isVML) {
+					elem.vml.style.left = value;
+				} else {
+					elem.style.left = value;
 				}
-				elem.style.left = value;
 			}
 		};
 		$.fx.step.left = function (fx) {
@@ -287,16 +295,18 @@
 
 		$.cssHooks.top = {
 			get: function (elem, computed) {
-				if (elem.isVML && elem.isImageNode) {
-					return elem.shape.style.top;
+				if (elem.isVML) {
+					return elem.vml.style.top;
+				} else {
+					return elem.style.top;
 				}
-				return elem.style.top;
 			},
 			set: function (elem, value) {
-				if (elem.isVML && elem.isImageNode) {
-					elem.shape.style.top = value;
+				if (elem.isVML) {
+					elem.vml.style.top = value;
+				} else {
+					elem.style.top = value;
 				}
-				elem.style.top = value;
 			}
 		};
 		$.fx.step.top = function (fx) {
@@ -306,6 +316,109 @@
 		var _super = {
 			width: $.cssHooks.width,
 			height: $.cssHooks.height
+		};
+
+		$.cssHooks.marginLeft = {
+			get: function (elem, computed, extra) {
+				if (elem.isVML) {
+					return elem.vml.style.marginLeft;
+				} else {
+					return elem.currentStyle.marginLeft;
+				}
+			},
+			set: function (elem, value) {
+				if (elem.isVML) {
+					elem.vml.style.marginLeft = value;
+				} else {
+					elem.style.marginLeft = value;
+				}
+			}
+		};
+		$.fx.step.marginLeft = function (fx) {
+			$.cssHooks.marginLeft.set(fx.elem, fx.now + fx.unit);
+		};
+
+		$.cssHooks.borderLeftStyle = {
+			get: function (elem, computed, extra) {
+				if (elem.isVML) {
+					return elem.vml.style.borderLeftStyle;
+				} else {
+					return elem.currentStyle.borderLeftStyle;
+				}
+			},
+			set: function (elem, value) {
+				if (elem.isVML) {
+					elem.vml.style.borderLeftStyle = value;
+				} else {
+					elem.style.borderLeftStyle = value;
+				}
+			}
+		};
+		$.fx.step.borderLeftStyle = function (fx) {
+			$.cssHooks.borderLeftStyle.set(fx.elem, fx.now + fx.unit);
+		};
+
+		$.cssHooks.borderLeftWidth = {
+			get: function (elem, computed, extra) {
+				if (elem.isVML) {
+					return elem.vml.style.borderLeftWidth;
+				} else {
+					return elem.currentStyle.borderLeftWidth;
+				}
+			},
+			set: function (elem, value) {
+				if (elem.isVML) {
+					elem.vml.style.borderLeftWidth = value;
+				} else {
+					elem.style.borderLeftWidth = value;
+				}
+			}
+		};
+		$.fx.step.borderLeftWidth = function (fx) {
+			$.cssHooks.borderLeftWidth.set(fx.elem, fx.now + fx.unit);
+		};
+
+		$.cssHooks.borderLeftColor = {
+			get: function (elem, computed, extra) {
+				if (elem.isVML) {
+					return elem.vml.style.borderLeftColor;
+				} else {
+					return elem.currentStyle.borderLeftColor;
+				}
+			},
+			set: function (elem, value) {
+				if (elem.isVML) {
+					elem.vml.style.borderLeftColor = value;
+				} else {
+					elem.style.borderLeftColor = value;
+				}
+			}
+		};
+		$.fx.step.borderLeftColor = function (fx) {
+			$.cssHooks.borderLeftColor.set(fx.elem, fx.now + fx.unit);
+		};
+
+		$.cssHooks.paddingLeft = {
+			get: function (elem, computed, extra) {
+				if (elem.isVML && elem.isImageNode) {
+					return elem.vml.style.paddingLeft;
+				} else {
+					return elem.currentStyle.paddingLeft;
+				}
+			},
+			set: function (elem, value) {
+				/*if (elem.id == 'checkIt') {
+					alert([elem.isVML, elem.isImageNode]);
+				}/**/
+				if (elem.isVML && elem.isImageNode) {
+					elem.vml.style.paddingLeft = value;
+				} else {
+					elem.style.paddingLeft = value;
+				}
+			}
+		};
+		$.fx.step.paddingLeft = function (fx) {
+			$.cssHooks.paddingLeft.set(fx.elem, fx.now + fx.unit);
 		};
 
 		$.cssHooks.width = {
@@ -355,9 +468,9 @@
 		};
 
 		$.cssHooks.backgroundPositionX = {
-			set: function(elem, value, unit) {
+			set: function(elem, value, unit, isInternal) {
 				if (elem.isVML) {
-					if (typeof value == 'string') {
+					if (typeof value === 'string') {
 						value = Number(value.substr(0, value.length - 2));
 					}
 					var positionX = (value + 0.5) / $(elem).outerWidth(),
@@ -365,7 +478,9 @@
 					elem.positionX = positionX;
 					elem.fill.position = [positionX, positionY];
 				}
-				elem.style.backgroundPositionX = value + (unit ? unit : '');
+				if (!isInternal) {
+					elem.style.backgroundPositionX = value + (unit ? unit : '');
+				}
 			}
 		};
 		$.fx.step.backgroundPositionX = function (fx) {
@@ -373,9 +488,9 @@
 		};
 
 		$.cssHooks.backgroundPositionY = {
-			set: function(elem, value, unit) {
+			set: function(elem, value, unit, isInternal) {
 				if (elem.isVML) {
-					if (typeof value == 'string') {
+					if (typeof value === 'string') {
 						value = Number(value.substr(0, value.length - 2));
 					}
 					var positionX = elem.positionX,
@@ -383,7 +498,9 @@
 					elem.positionY = positionY;
 					elem.fill.position = [positionX, positionY];
 				}
-				elem.style.backgroundPositionY = value + (unit ? unit : '');
+				if (!isInternal) {
+					elem.style.backgroundPositionY = value + (unit ? unit : '');
+				}
 			}
 		};
 		$.fx.step.backgroundPositionY = function (fx) {
